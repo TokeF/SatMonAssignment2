@@ -1,0 +1,9 @@
+close all
+M = load("flevoland.mat");
+R = M.C(1,1,:,:); G = M.C(2,2,:,:); B = M.C(3,3,:,:);
+R = 10*log10(4*pi*R); 
+G = 10*log10(4*pi*G); 
+B = squeeze(10*log10(4*pi*B);
+RGB = cat(3,R,G,B);
+imagesc(RGB)
+% colormap(M.cmap)
