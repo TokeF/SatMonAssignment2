@@ -1,5 +1,5 @@
 close all
-M = load("flevoland.mat");
+M = load('flevoland.mat');
 R = M.C(1,1,:,:); G = M.C(2,2,:,:); B = M.C(3,3,:,:);
 R = squeeze(R); G = squeeze(G); B = squeeze(B);
 R = 10*log10(4*pi*R); 
