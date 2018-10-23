@@ -30,20 +30,46 @@ title('Ground truth')
 
 %% 1.c histogram
 cn = 5;
-s = size(class{cn},3); %number of samples in a class
-b = zeros(s*3,1); %times 3 because we have 3 values in diagonal
-for i = 0 : s - 1
-    idx = i*3+1; %to go trough 3 indexes in b
-    b(idx:idx+2) = diag(abs(class{cn}(:,:,i+1)));
+s = size(trnClass{cn},3); %number of samples in a class
+Ihh = zeros(s,1); %times 3 because we have 3 values in diagonal
+Ihv = zeros(s,1);
+Ivv = zeros(s,1);
+for i = 1 : s
+    %idx = i*3+1; %to go trough 3 indexes in b
+    Ihh(i) = abs(trnClass{cn}(1,1,i));
+    Ihv(i) = abs(trnClass{cn}(2,2,i));
+    Ivv(i) = abs(trnClass{cn}(3,3,i));
 end
-histogram(b, 'Normalization', 'probability');
+
 alpha = 27;
-mu = mean(b);
-p = @(I) (alpha / mu)^alpha .* I.^(alpha - 1) / factorial(alpha - 1)...
+p = @(I, mu) (alpha / mu)^alpha .* I.^(alpha - 1) / factorial(alpha - 1)...
     .* exp(-alpha / mu .* I);
-Imodel = linspace(0,max(b),100);
-pdist = p(Imodel);
+
+subplot(1,3,1); 
+histogram(Ihh, 'Normalization', 'pdf');
 hold on
-plot(Imodel,pdist./sum(pdist))
+Imodel = linspace(0,max(Ihh),length(Ihh));
+plot(Imodel,p(Imodel,mean(Ihh)))
+title('Ihh')
+
+subplot(1,3,2);
+histogram(Ihv, 'Normalization', 'pdf');
+hold on
+Imodel = linspace(0,max(Ihv),length(Ihv));
+plot(Imodel,p(Imodel,mean(Ihv)))
+title('Ihv')
+
+subplot(1,3,3); 
+histogram(Ivv, 'Normalization', 'pdf');
+hold on
+Imodel = linspace(0,max(Ivv),length(Ivv));
+plot(Imodel,p(Imodel,mean(Ivv)))
+title('Ivv')
+
 
 %% 1.d 
+
+% P(x_i | c_i) * fraction(class_i/total)
+
+%only calc the gamma funciton as the probasbility estimate
+

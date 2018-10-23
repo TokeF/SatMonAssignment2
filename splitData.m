@@ -2,14 +2,16 @@ function [class, tstClass, trnClass] = splitData(M, spltPerc, seed)
 r = size(M.C,3); c = size(M.C,4); % # of rows and columns
 linC = reshape(M.C,3,3,r*c,1); % "one" row of pixels, ie. 3x3xr*c
 %Create cell array for all classes, test set and training set
-class = cell(1,16);
-tstClass = cell(1,16);
-trnClass = cell(1,16);
+numClasses = 15;
+class = cell(1,numClasses);
+tstClass = cell(1,numClasses);
+trnClass = cell(1,numClasses);
 rng(seed); %set random seed for reproduceability
-for i = 1 : 16
+for i = 1 : numClasses
     % seperate data into classes
-    linIdx = find(M.gtruth == i - 1);
+    linIdx = find(M.gtruth == i );
     class{i} = linC(:,:,linIdx);
+%     [ridx,cidx] = ind2sub([r,c], linIdx);
     % randomly split data
     classLength = size(class{i},3);
     rndIdx = randperm(classLength);
