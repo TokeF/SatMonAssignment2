@@ -1,7 +1,9 @@
+
 %% Load data
 M = load('flevoland.mat');
 
 %% part 1a
+% Use HH as red, XX as green and VV as blue
 R = M.C(1,1,:,:); G = M.C(2,2,:,:); B = M.C(3,3,:,:);
 R = squeeze(R); G = squeeze(G); B = squeeze(B);
 R = 10*log10(4*pi*R); 
@@ -68,8 +70,39 @@ title('Ivv')
 
 
 %% 1.d 
+% The gamma function is used as decision function. The prior P(w_j) = 1.
+% The evidence p(x) is not nescessary.
+classNum = 15;
+clsFication = cell(1,classNum); % store classification result
+userAcc = zeros(1,classNum);
+conf = zeros(classNum,classNum); % confusion matrix
+%iterate trough each class
+for i = 1 : classNum
+    % to keep result of gamma function
+    b = zeros(size(tstClass{i},3), classNum);
+    %calc gamme function for each class for each gamma function
+    for j = 1 : classNum
+        b(:,j) = squeeze(p(tstClass{i}(1,1,:), mean(tstClass{j}(1,1,:))));
+    end
+    %assign labels to a pixel according to highest valued gamma function
+    [~, label] = max(b,[],2);
+    clsFication{i} = label;
+    %store the user accuracy
+    userAcc(i) = sum(label == i) / length(label);
+    
+    %calcualte how many of each class a test set predicted
+    for k = 1 : classNum
+        conf(i,k) = sum(label == k);
+    end
+end
+edges = 0.5:1:15.5;
+%histogram(label,edges,'normalization', 'probability')
 
-% P(x_i | c_i) * fraction(class_i/total)
+%% 1.e
+%user accuracy:
+userAcc;
+prodAcc = diag(conf)' ./ sum(conf);
 
-%only calc the gamma funciton as the probasbility estimate
+
+
 
