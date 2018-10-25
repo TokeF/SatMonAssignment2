@@ -1,4 +1,3 @@
-
 %% Load data
 M = load('flevoland.mat');
 
