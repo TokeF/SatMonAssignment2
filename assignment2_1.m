@@ -26,7 +26,7 @@ imagesc(M.gtruth)
 colormap(M.cmap)
 title('Ground truth')
 
-%% 1.b split in training and test
+%% 1.b split datal in training and test
 [class, tstClass, trnClass] = splitData(M, 0.6, 2);
 
 %% 1.c histogram

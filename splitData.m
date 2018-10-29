@@ -1,3 +1,6 @@
+% Input: Data to be split, split percentge (perentage the test set will
+% make up) and a seed for the random number generator (for
+% reproduceability)
 function [class, tstClass, trnClass] = splitData(M, spltPerc, seed)
 r = size(M.C,3); c = size(M.C,4); % # of rows and columns
 linC = reshape(M.C,3,3,r*c,1); % "one" row of pixels, ie. 3x3xr*c
