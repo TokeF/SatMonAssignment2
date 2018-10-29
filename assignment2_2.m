@@ -20,9 +20,9 @@ figure(2);
 imagesc(RGB)
 title('RGB image')
 
-%%
+%% 2b
 %PCA for each pixel? pixel is 4D reduce it?
-%BW = roipoly(RGB);
+BW = roipoly(RGB);
 
 %find the index of the pixels of the ROI
 idx = find(BW == 1);
@@ -56,55 +56,73 @@ for i = 1 : 2800
         innerMat(i,j) = acos( norm(kl' * c1) / norm(kl));
     end
 end
-
+%%
 %apply sliding window of size 5x5
-h = fspecial('average', 5);
-targetFil = imfilter(innerMat,h);
-
-imagesc(mat2gray(cos(targetFil).^-1,[0 pi/2]))
-
-% normkl = sqrt( targetImg(:,:,1) .* conj(targetImg(:,:,1)) ...
-%              + targetImg(:,:,2) .* conj(targetImg(:,:,2)) ... 
-%              + targetImg(:,:,3) .* conj(targetImg(:,:,3)) );
-% 
-% %multiply target vectors with c1
-% targetImg(:,:,1) = targetImg(:,:,1) * c1(1);
-% targetImg(:,:,2) = targetImg(:,:,2) * c1(2);
-% targetImg(:,:,3) = targetImg(:,:,3) * c1(3);
-% dummyMat = norm(sum(targetImg,3)) ./ normkl;
-% 
-% %apply sliding window of size 5x5
 % h = fspecial('average', 5);
-% targetFil = imfilter(dummyMat,h);
-% 
-% imagesc(mat2gray(cos(targetFil).^-1,[0 pi/2]))
+% targetFil = imfilter(innerMat,h);
+targetFil = slidingWindowAvgSAR(innerMat, 5);
+imagesc(mat2gray(cos(targetFil).^-1,[0 pi/2]));
+
+
+%% the covariance matrix 2a
+
+sX = 1/sqrt(2)*(M.sHV + M.sVH);
+%C = calculateC(M.sHH, sX, M.sVV, 5);
+% calcuate sigma by retriving th necessary value from the diagonal of
+% the array contained in the entries of C
+row = size(C,1); col = size(C,2);
+sighh = zeros(row,col);
+sigx = zeros(row,col);
+sigvv = zeros(row,col);
+for i = 1 : row
+    for j = 1 : col
+        sighh(i,j) = 10*log10(4*pi*abs(C{i,j}(1,1)));
+        sigx(i,j) = 10*log10(4*pi*abs(C{i,j}(2,2)));
+        sigvv(i,j) = 10*log10(4*pi*abs(C{i,j}(3,3)));
+    end
+end
+R = sighh; G = sigx; B = sigvv;
+RGB = zeros(row, col, 3);
+R(~isfinite(R))=-1;
+G(~isfinite(G))=-1;
+B(~isfinite(B))=-1;
+RGB(:,:,2) = mat2gray(G,[min(min(G)) max(max(G))]);
+RGB(:,:,3) = mat2gray(B,[min(min(B)) max(max(B))]);
+RGB(:,:,1) = mat2gray(R,[min(min(R)) max(max(R))]);
+figure
+imshow(RGB)
+
+%% find the coherency matrix 2a
+N = 1/sqrt(2) * [1 0 1; 1 0 -1; 0 sqrt(2) 0];
+sizC = size(C,2);
+T = cell(sizC,sizC);
+for i = 1 : sizC
+    for j = 1 : sizC
+        T{i,j} = N * C{i,j} * N';
+    end
+end
+
+row = size(T,1); col = size(T,2);
+Thh = zeros(row,col);
+Tx = zeros(row,col);
+Tvv = zeros(row,col);
+for i = 1 : row
+    for j = 1 : col
+        Thh(i,j) = 10*log10(4*pi*abs(T{i,j}(1,1)));
+        Tx(i,j) = 10*log10(4*pi*abs(T{i,j}(2,2)));
+        Tvv(i,j) = 10*log10(4*pi*abs(T{i,j}(3,3)));
+    end
+end
+R = Thh; G = Tx; B = Tvv;
+RGB = zeros(row, col, 3);
+R(~isfinite(R))=-1;
+G(~isfinite(G))=-1;
+B(~isfinite(B))=-1;
+RGB(:,:,2) = mat2gray(G,[min(min(G)) max(max(G))]);
+RGB(:,:,3) = mat2gray(B,[min(min(B)) max(max(B))]);
+RGB(:,:,1) = mat2gray(R,[min(min(R)) max(max(R))]);
+figure
+imshow(RGB)
 
 %%
-% Transformation matrix U
-% U = 1/sqrt(2) * [1 0 1; 1 0 -1; 0 sqrt(2) 0];
-% 
-% if ~exist('kp')
-%     kp = zeros(2800,2800,3);
-%     for i = 1 : 2800
-%         i
-%         for j = 1 : 2800
-%             kl = squeeze(targetImg(i,j,:));
-%             kp(i,j,:) = U*kl;
-%         end
-%     end
-% end
-% 
-% %apply sliding window of size 5x5
-% h = fspecial('average', 5);
-% % coherency matrix T
-% T = imfilter(sum(kp.*conj(kp),3),h);
-% kpkp = cell(2800,2800);
-% for i = 1 : 2800
-%     i
-%     for j = 1 : 2800
-%         kpl = squeeze(kp(i,j,:));
-%         kpkp{i,j} = kpl * conj(kpl)';
-%     end
-% end
-
-T = calcT(M);
+[v, l] = eig(R);
